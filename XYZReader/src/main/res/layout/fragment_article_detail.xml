@@ -100,6 +100,14 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
+            <ProgressBar
+                android:id="@+id/pb_loading_article_detail_body"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="@dimen/margin_progress_bar"
+                />
+
             <TextView
                 android:id="@+id/article_detail_body"
                 style="?android:attr/textAppearanceMedium"

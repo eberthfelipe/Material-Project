@@ -9,6 +9,7 @@
     <dimen name="fab_margin">24dp</dimen>
 
     <dimen name="margin_default">8dp</dimen>
+    <dimen name="margin_progress_bar">28dp</dimen>
 
     <!--
     Reference for material custom bar:

@@ -1,45 +1,42 @@
 package com.example.xyzreader.ui;
 
-import android.app.ActionBar;
 import android.app.Activity;
-import android.app.Fragment;
-import android.app.LoaderManager;
 import android.content.Intent;
-import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.graphics.Typeface;
-import android.graphics.drawable.ColorDrawable;
-
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.GregorianCalendar;
-
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
 import android.support.v4.app.ShareCompat;
-import android.support.v4.widget.NestedScrollView;
+import android.support.v4.content.Loader;
 import android.support.v7.graphics.Palette;
 import android.text.Html;
 import android.text.format.DateUtils;
-import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.ImageLoader;
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.Picasso;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.GregorianCalendar;
 
 /**
  * A fragment representing a single Article detail screen. This fragment is
@@ -51,18 +48,37 @@ public class ArticleDetailFragment extends Fragment implements
     private static final String TAG = "ArticleDetailFragment";
 
     public static final String ARG_ITEM_ID = "item_id";
+    private static final int LONG_TEXT = 1;
 
     private Cursor mCursor;
     private long mItemId;
     private View mRootView;
     private int mMutedColor = 0xFF333333;
 
-    private boolean mIsCard = false;
-
     private ImageView mImageToolBar;
     private FloatingActionButton mFloatingActionButton;
     private CollapsingToolbarLayout mCollapsingToolbarLayout;
     private AppBarLayout mAppBarLayout;
+
+    private TextView mTitleView;
+    private TextView mBylineView;
+    private TextView mBodyView;
+    private ProgressBar mProgressBarBody;
+
+    /**
+     * Reference code:
+     * https://github.com/larissacazi/MaterialDesignProject/blob/master/xyz-reader-starter-code/XYZReader/src/main/java/com/example/xyzreader/ui/ArticleDetailActivity.java
+     */
+    private Handler mHandler = new Handler() {
+        public void handleMessage(Message msg) {
+            switch(msg.what) {
+                case LONG_TEXT:
+                    mBodyView.setText(msg.obj.toString());
+                    showProgressLoading(false);
+                    break;
+            }
+        }
+    };
 
 
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss");
@@ -78,7 +94,7 @@ public class ArticleDetailFragment extends Fragment implements
     public ArticleDetailFragment() {
     }
 
-    public static ArticleDetailFragment newInstance(long itemId) {
+    public static android.support.v4.app.Fragment newInstance(long itemId) {
         Bundle arguments = new Bundle();
         arguments.putLong(ARG_ITEM_ID, itemId);
         ArticleDetailFragment fragment = new ArticleDetailFragment();
@@ -94,7 +110,6 @@ public class ArticleDetailFragment extends Fragment implements
             mItemId = getArguments().getLong(ARG_ITEM_ID);
         }
 
-        mIsCard = getResources().getBoolean(R.bool.detail_is_card);
         setHasOptionsMenu(true);
 
     }
@@ -125,11 +140,16 @@ public class ArticleDetailFragment extends Fragment implements
         mFloatingActionButton = mRootView.findViewById(R.id.share_fab);
         mFloatingActionButton.setOnClickListener(getClickForFloatingButton(getActivityCast()));
 
+        mTitleView = mRootView.findViewById(R.id.article_detail_title);
+        mBylineView = mRootView.findViewById(R.id.article_detail_byline);
+        mBodyView = mRootView.findViewById(R.id.article_detail_body);
+        mProgressBarBody = mRootView.findViewById(R.id.pb_loading_article_detail_body);
+
         bindViews();
         return mRootView;
     }
 
-    private void updateStatusBar(Bitmap bitmap, int color) {
+    private void updateStatusBar(int color) {
         mRootView.findViewById(R.id.meta_bar)
                 .setBackgroundColor(color);
         if (mAppBarLayout != null && mCollapsingToolbarLayout != null) {
@@ -137,7 +157,7 @@ public class ArticleDetailFragment extends Fragment implements
             mCollapsingToolbarLayout.setContentScrimColor(color);
             mCollapsingToolbarLayout.setStatusBarScrimColor(color);
         }
-        mImageToolBar.setImageBitmap(bitmap);
+//        mImageToolBar.setImageBitmap(bitmap);
         Window window = getActivityCast().getWindow();
         window.setStatusBarColor(color);
     }
@@ -157,22 +177,17 @@ public class ArticleDetailFragment extends Fragment implements
         if (mRootView == null) {
             return;
         }
-
-        TextView titleView = mRootView.findViewById(R.id.article_detail_title);
-        TextView bylineView = mRootView.findViewById(R.id.article_detail_byline);
-        TextView bodyView = mRootView.findViewById(R.id.article_detail_body);
-
-
-        bodyView.setTypeface(Typeface.createFromAsset(getResources().getAssets(), "Rosario-Regular.ttf"));
+        showProgressLoading(true);
+        mBodyView.setTypeface(Typeface.createFromAsset(getResources().getAssets(), "Rosario-Regular.ttf"));
 
         if (mCursor != null) {
             mRootView.setAlpha(0);
             mRootView.setVisibility(View.VISIBLE);
             mRootView.animate().alpha(1);
-            titleView.setText(mCursor.getString(ArticleLoader.Query.TITLE));
+            mTitleView.setText(mCursor.getString(ArticleLoader.Query.TITLE));
             Date publishedDate = parsePublishedDate();
             if (!publishedDate.before(START_OF_EPOCH.getTime())) {
-                bylineView.setText(Html.fromHtml(
+                mBylineView.setText(Html.fromHtml(
                         DateUtils.getRelativeTimeSpanString(
                                 publishedDate.getTime(),
                                 System.currentTimeMillis(), DateUtils.HOUR_IN_MILLIS,
@@ -183,35 +198,49 @@ public class ArticleDetailFragment extends Fragment implements
 
             } else {
                 // If date is before 1902, just show the string
-                bylineView.setText(Html.fromHtml(
+                mBylineView.setText(Html.fromHtml(
                         outputFormat.format(publishedDate) + " by <font color='#ffffff'>"
                         + mCursor.getString(ArticleLoader.Query.AUTHOR)
                                 + "</font>"));
 
             }
-            bodyView.setText(Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n|\n)", "<br />")));
-            ImageLoaderHelper.getInstance(getActivity()).getImageLoader()
-                    .get(mCursor.getString(ArticleLoader.Query.PHOTO_URL), new ImageLoader.ImageListener() {
+
+            /**
+             * Reference code:
+             * https://github.com/larissacazi/MaterialDesignProject/blob/master/xyz-reader-starter-code/XYZReader/src/main/java/com/example/xyzreader/ui/ArticleDetailActivity.java
+             */
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    String body = Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n|\n)", "<br />")).toString();
+                    mHandler.sendMessage(mHandler.obtainMessage(LONG_TEXT, body));
+                }
+            });
+            thread.start();
+
+            Picasso.with(getActivityCast()).load(mCursor.getString(ArticleLoader.Query.PHOTO_URL))
+                    .into(mImageToolBar, new Callback() {
                         @Override
-                        public void onResponse(ImageLoader.ImageContainer imageContainer, boolean b) {
-                            Bitmap bitmap = imageContainer.getBitmap();
+                        public void onSuccess() {
+                            Bitmap bitmap = ((BitmapDrawable)mImageToolBar.getDrawable()).getBitmap();
                             if (bitmap != null) {
                                 Palette p = Palette.generate(bitmap, 12);
                                 mMutedColor = p.getDarkMutedColor(0xFF333333);
-                                updateStatusBar(imageContainer.getBitmap(),mMutedColor);
+                                updateStatusBar(mMutedColor);
                             }
+                            getActivityCast().supportStartPostponedEnterTransition();
                         }
 
                         @Override
-                        public void onErrorResponse(VolleyError volleyError) {
-
+                        public void onError() {
+                            getActivityCast().supportStartPostponedEnterTransition();
                         }
                     });
         } else {
             mRootView.setVisibility(View.GONE);
-            titleView.setText("N/A");
-            bylineView.setText("N/A" );
-            bodyView.setText("N/A");
+            mTitleView.setText("N/A");
+            mBylineView.setText("N/A" );
+            mBodyView.setText("N/A");
         }
     }
 
@@ -241,8 +270,8 @@ public class ArticleDetailFragment extends Fragment implements
 
     @Override
     public void onLoaderReset(Loader<Cursor> cursorLoader) {
-        mCursor = null;
-        bindViews();
+//        mCursor = null;
+//        bindViews();
     }
 
     public View.OnClickListener getClickForFloatingButton(final Activity activity){
@@ -251,9 +280,20 @@ public class ArticleDetailFragment extends Fragment implements
             public void onClick(View view) {
                 startActivity(Intent.createChooser(ShareCompat.IntentBuilder.from(activity)
                         .setType("text/plain")
+                        //TODO: change shared text
                         .setText("Some sample text")
                         .getIntent(), getString(R.string.action_share)));
             }
         };
+    }
+
+    public void showProgressLoading(boolean show){
+        if(show){
+            mBodyView.setVisibility(View.GONE);
+            mProgressBarBody.setVisibility(View.VISIBLE);
+        } else {
+            mBodyView.setVisibility(View.VISIBLE);
+            mProgressBarBody.setVisibility(View.GONE);
+        }
     }
 }
