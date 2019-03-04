@@ -10,4 +10,14 @@
 
     <dimen name="margin_default">8dp</dimen>
 
+    <!--
+    Reference for material custom bar:
+    https://github.com/DmitryMalkovich/make-your-app-material/blob/master/XYZReader/src/main/res/values/dimens_details.xml
+    -->
+    <dimen name="material_layout_app_bar_height">320dp</dimen>
+    <dimen name="expanded_toolbar_height">80dp</dimen>
+    <dimen name="expanded_toolbar_title_margin_bottom">40dp</dimen>
+    <dimen name="app_bar_elevation">2dp</dimen>
+
+
 </resources>
