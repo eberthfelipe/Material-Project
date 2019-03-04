@@ -17,6 +17,7 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.app.ShareCompat;
 import android.support.v4.content.Loader;
 import android.support.v7.graphics.Palette;
+import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.format.DateUtils;
 import android.util.Log;
@@ -57,8 +58,9 @@ public class ArticleDetailFragment extends Fragment implements
 
     private ImageView mImageToolBar;
     private FloatingActionButton mFloatingActionButton;
-    private CollapsingToolbarLayout mCollapsingToolbarLayout;
     private AppBarLayout mAppBarLayout;
+    private CollapsingToolbarLayout mCollapsingToolbarLayout;
+    private Toolbar mToolbar;
 
     private TextView mTitleView;
     private TextView mBylineView;
@@ -137,6 +139,7 @@ public class ArticleDetailFragment extends Fragment implements
         mAppBarLayout = mRootView.findViewById(R.id.appbar_article_detail);
         mCollapsingToolbarLayout = mRootView.findViewById(R.id.collapsing_toolbar_layout_detail);
         mImageToolBar = mRootView.findViewById(R.id.toolbar_image_view);
+        mToolbar = mRootView.findViewById(R.id.toolbar_article_detail);
         mFloatingActionButton = mRootView.findViewById(R.id.share_fab);
         mFloatingActionButton.setOnClickListener(getClickForFloatingButton(getActivityCast()));
 
@@ -157,8 +160,7 @@ public class ArticleDetailFragment extends Fragment implements
             mCollapsingToolbarLayout.setContentScrimColor(color);
             mCollapsingToolbarLayout.setStatusBarScrimColor(color);
         }
-//        mImageToolBar.setImageBitmap(bitmap);
-        Window window = getActivityCast().getWindow();
+        Window window = getActivity().getWindow();
         window.setStatusBarColor(color);
     }
 
@@ -181,9 +183,6 @@ public class ArticleDetailFragment extends Fragment implements
         mBodyView.setTypeface(Typeface.createFromAsset(getResources().getAssets(), "Rosario-Regular.ttf"));
 
         if (mCursor != null) {
-            mRootView.setAlpha(0);
-            mRootView.setVisibility(View.VISIBLE);
-            mRootView.animate().alpha(1);
             mTitleView.setText(mCursor.getString(ArticleLoader.Query.TITLE));
             Date publishedDate = parsePublishedDate();
             if (!publishedDate.before(START_OF_EPOCH.getTime())) {
@@ -228,19 +227,24 @@ public class ArticleDetailFragment extends Fragment implements
                                 mMutedColor = p.getDarkMutedColor(0xFF333333);
                                 updateStatusBar(mMutedColor);
                             }
-                            getActivityCast().supportStartPostponedEnterTransition();
+//                            getActivityCast().supportStartPostponedEnterTransition();
                         }
 
                         @Override
                         public void onError() {
-                            getActivityCast().supportStartPostponedEnterTransition();
+//                            getActivityCast().supportStartPostponedEnterTransition();
                         }
                     });
-        } else {
-            mRootView.setVisibility(View.GONE);
-            mTitleView.setText("N/A");
-            mBylineView.setText("N/A" );
-            mBodyView.setText("N/A");
+
+            if(mToolbar != null){
+                mToolbar.setNavigationIcon(R.drawable.ic_arrow_back);
+                mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        getActivityCast().onBackPressed();
+                    }
+                });
+            }
         }
     }
 
