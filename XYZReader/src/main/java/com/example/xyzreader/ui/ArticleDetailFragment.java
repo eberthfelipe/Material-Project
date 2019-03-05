@@ -113,7 +113,7 @@ public class ArticleDetailFragment extends Fragment implements
         }
 
         setHasOptionsMenu(true);
-
+        getActivity().supportPostponeEnterTransition();
     }
 
     public ArticleDetailActivity getActivityCast() {
@@ -130,7 +130,6 @@ public class ArticleDetailFragment extends Fragment implements
         // we do this in onActivityCreated.
         getLoaderManager().initLoader(0, null, this);
 
-        getActivityCast().supportPostponeEnterTransition();
     }
 
     @Override
@@ -219,7 +218,7 @@ public class ArticleDetailFragment extends Fragment implements
             });
             thread.start();
 
-            Picasso.with(getActivityCast()).load(mCursor.getString(ArticleLoader.Query.PHOTO_URL))
+            Picasso.with(getActivity()).load(mCursor.getString(ArticleLoader.Query.PHOTO_URL))
                     .into(mImageToolBar, new Callback() {
                         @Override
                         public void onSuccess() {
@@ -229,12 +228,12 @@ public class ArticleDetailFragment extends Fragment implements
                                 mMutedColor = p.getDarkMutedColor(0xFF333333);
                                 updateStatusBar(mMutedColor);
                             }
-                            getActivityCast().supportStartPostponedEnterTransition();
+                            getActivity().supportStartPostponedEnterTransition();
                         }
 
                         @Override
                         public void onError() {
-                            getActivityCast().supportStartPostponedEnterTransition();
+                            getActivity().supportStartPostponedEnterTransition();
                         }
                     });
 
@@ -243,7 +242,7 @@ public class ArticleDetailFragment extends Fragment implements
                 mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        getActivityCast().onBackPressed();
+                        getActivity().onBackPressed();
                     }
                 });
             }
@@ -276,8 +275,6 @@ public class ArticleDetailFragment extends Fragment implements
 
     @Override
     public void onLoaderReset(Loader<Cursor> cursorLoader) {
-//        mCursor = null;
-//        bindViews();
     }
 
     public View.OnClickListener getClickForFloatingButton(final Activity activity){
@@ -286,8 +283,9 @@ public class ArticleDetailFragment extends Fragment implements
             public void onClick(View view) {
                 startActivity(Intent.createChooser(ShareCompat.IntentBuilder.from(activity)
                         .setType("text/plain")
-                        //TODO: change shared text
-                        .setText("Some sample text")
+                        .setText("XYZ Reader APP - \n"+
+                                mTitleView.getText() + ":\n"
+                                + mBylineView.getText())
                         .getIntent(), getString(R.string.action_share)));
             }
         };
