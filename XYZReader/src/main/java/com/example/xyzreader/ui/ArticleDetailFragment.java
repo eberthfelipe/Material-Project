@@ -129,6 +129,8 @@ public class ArticleDetailFragment extends Fragment implements
         // fragments because their mIndex is -1 (haven't been added to the activity yet). Thus,
         // we do this in onActivityCreated.
         getLoaderManager().initLoader(0, null, this);
+
+        getActivityCast().supportPostponeEnterTransition();
     }
 
     @Override
@@ -227,12 +229,12 @@ public class ArticleDetailFragment extends Fragment implements
                                 mMutedColor = p.getDarkMutedColor(0xFF333333);
                                 updateStatusBar(mMutedColor);
                             }
-//                            getActivityCast().supportStartPostponedEnterTransition();
+                            getActivityCast().supportStartPostponedEnterTransition();
                         }
 
                         @Override
                         public void onError() {
-//                            getActivityCast().supportStartPostponedEnterTransition();
+                            getActivityCast().supportStartPostponedEnterTransition();
                         }
                     });
 
