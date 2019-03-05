@@ -29,17 +29,13 @@
                 <ImageView
                     android:id="@+id/toolbar_image_view"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:scaleType="centerCrop"
+                    android:adjustViewBounds="true"
                     android:fitsSystemWindows="true"
                     app:layout_collapseMode="parallax"
                     app:layout_collapseParallaxMultiplier="1.25"
                     />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/photo_background_protection" />
 
                 <LinearLayout
                     android:id="@+id/meta_bar"
@@ -60,7 +56,6 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:maxLines="1"
-                        android:fontFamily="sans-serif-condensed"
                         android:textColor="@color/colorPrimaryLight"
                         android:textStyle="bold" />
 
@@ -69,7 +64,7 @@
                         style="?android:attr/textAppearanceSmall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="#8fff" />
+                        android:textColor="@color/colorDivider" />
                 </LinearLayout>
 
             </FrameLayout>
