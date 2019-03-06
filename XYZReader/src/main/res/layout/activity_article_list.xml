@@ -5,13 +5,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context=".ui.ArticleListActivity">
+    tools:context=".ui.ArticleListActivity"
+    >
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/appbar_article_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:theme="@style/AppTheme.AppBarOverlay"
+        android:elevation="@dimen/material_appbar_elevation"
+        app:elevation="@dimen/material_appbar_elevation"
         >
 
         <android.support.v7.widget.Toolbar
@@ -20,7 +23,7 @@
             android:layout_width="wrap_content"
             android:layout_height="?attr/actionBarSize"
             android:background="@drawable/logo"
-            app:layout_scrollFlags="scroll|enterAlways"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed"
             android:layout_marginStart="@dimen/margin_default"
             />
     </android.support.design.widget.AppBarLayout>

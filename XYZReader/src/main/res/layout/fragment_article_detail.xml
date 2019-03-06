@@ -9,6 +9,8 @@
         android:layout_height="@dimen/material_layout_app_bar_height"
         android:fitsSystemWindows="true"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        android:elevation="@dimen/material_appbar_elevation"
+        app:elevation="@dimen/material_appbar_elevation"
         >
 
         <android.support.design.widget.CollapsingToolbarLayout
@@ -129,7 +131,8 @@
         android:layout_width="56dp"
         android:layout_height="56dp"
         android:src="@drawable/ic_share"
-        android:elevation="@dimen/fab_elevation"
+        android:elevation="@dimen/material_fab_elevation"
+        app:elevation="@dimen/material_fab_elevation"
         android:contentDescription="@string/action_share"
         />
 </android.support.design.widget.CoordinatorLayout>
